@@ -1,32 +1,11 @@
 import java.io.IOException;
 import java.net.URL;
-import java.time.DateTimeException;
 import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.util.Calendar;
 import java.util.Date;
 
 public abstract class BaseCalendar {
-    DayOfWeek getJavaDayOfWeek(String dayOfWeek) {
-        switch (dayOfWeek.toLowerCase().replace(':', ' ').strip()) {
-            case "sunday":
-                return DayOfWeek.SUNDAY;
-            case "monday":
-                return DayOfWeek.MONDAY;
-            case "tuesday":
-                return DayOfWeek.TUESDAY;
-            case "wednesday":
-                return DayOfWeek.WEDNESDAY;
-            case "thursday":
-                return DayOfWeek.THURSDAY;
-            case "friday":
-                return DayOfWeek.FRIDAY;
-            case "saturday":
-                return DayOfWeek.SATURDAY;
-        }
-        throw new DateTimeException("Unknown day of week '" + dayOfWeek + "'");
-    }
-
     String getJavaDayOfWeek(DayOfWeek dayOfWeek) {
         return switch (dayOfWeek) {
             case SUNDAY -> "Sunday";
@@ -42,11 +21,6 @@ public abstract class BaseCalendar {
     static class Time {
         int hour;
         int minute;
-
-        Time(int hour, int minute) {
-            this.hour = hour;
-            this.minute = minute;
-        }
 
         Time(String time) {
             int offset = time.contains("pm") ? 12 : 0;

@@ -7,14 +7,12 @@ import java.io.IOException;
 import java.net.URL;
 import java.security.GeneralSecurityException;
 import java.time.DayOfWeek;
-import java.time.LocalDate;
-import java.util.*;
 
 public class OttawaRecCalendar {
 
     final String siteUrl = "https://ottawa.ca";
 
-    void processDayOfWeek(Element pool, BaseCalendar calendar, DayOfWeek dayOfWeek, Element record, String location, URL url) throws IOException {
+    void processDayOfWeek(BaseCalendar calendar, DayOfWeek dayOfWeek, Element record, String location, URL url) throws IOException {
         Elements tableHeader = record.getElementsByTag("th");
         if(tableHeader.isEmpty()) {
             return;
@@ -70,7 +68,7 @@ public class OttawaRecCalendar {
                 Elements records = scheduleTable.getElementsByTag("tbody").get(0).getElementsByTag("tr");
                 for (Element record : records) {
                     for (DayOfWeek dayOfWeek : DayOfWeek.values()) {
-                        processDayOfWeek(pool, calendar, dayOfWeek, record, location, url);
+                        processDayOfWeek(calendar, dayOfWeek, record, location, url);
                     }
                     worked = true;
                 }

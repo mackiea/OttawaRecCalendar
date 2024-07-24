@@ -25,27 +25,15 @@ import java.time.DayOfWeek;
 import java.util.Collections;
 import java.util.List;
 
-/* class to demonstrate use of Calendar events list API */
+/**
+ * A calendar implementation that integrates with Google's API, based on example scripts.
+ */
 public class GoogleCalendar extends BaseCalendar {
-    /**
-     * Application name.
-     */
     private static final String APPLICATION_NAME = "Google Calendar API Java Quickstart";
-    /**
-     * Global instance of the JSON factory.
-     */
     private static final JsonFactory JSON_FACTORY = GsonFactory.getDefaultInstance();
-    /**
-     * Directory to store authorization tokens for this application.
-     */
     private static final String TOKENS_DIRECTORY_PATH = "tokens";
 
-    /**
-     * Global instance of the scopes required by this quickstart.
-     * If modifying these scopes, delete your previously saved tokens/ folder.
-     */
-    private static final List<String> SCOPES =
-            Collections.singletonList(CalendarScopes.CALENDAR);
+    private static final List<String> SCOPES = Collections.singletonList(CalendarScopes.CALENDAR);
     private static final String CREDENTIALS_FILE_PATH = "/credentials.json";
 
     /**
@@ -106,6 +94,16 @@ public class GoogleCalendar extends BaseCalendar {
     }
 
 
+    /**
+     * The events are not eternal.
+     * @param javaDayOfWeek The weekday the event runs.
+     * @param start The start time.
+     * @param end The end time.
+     * @param title The name.
+     * @param location Where the event is being held.
+     * @param url A link to the website the event is created from, for manual verification adn context.
+     * @throws IOException if a problem occurs.
+     */
     @Override
     void createWeeklyEvent(DayOfWeek javaDayOfWeek, Time start, Time end, String title, String location, URL url) throws IOException {
         log(javaDayOfWeek + "|" + start + "|" + end + "|" + title + "|" + location + "|" + url);
@@ -113,7 +111,7 @@ public class GoogleCalendar extends BaseCalendar {
                 .setSummary(title + ": " + location)
                 .setLocation(location)
                 .setDescription(url.toString() + ": " + getJavaDayOfWeek(javaDayOfWeek) + " @ " + start + "-" + end)
-                .setRecurrence(Collections.singletonList("RRULE:FREQ=WEEKLY;UNTIL=20240101T000000Z"));
+                .setRecurrence(Collections.singletonList("RRULE:FREQ=WEEKLY;UNTIL=20240901T000000Z")); /* Todo: Calculate in advance*/
         DateTime startDt = new DateTime(getPreviousDateByDayOfWeek(javaDayOfWeek, start));
         newEvent.setStart(new EventDateTime().setDateTime(startDt).setTimeZone("Canada/Eastern"));
 
@@ -136,33 +134,5 @@ public class GoogleCalendar extends BaseCalendar {
     public static void main(String... args) throws IOException, GeneralSecurityException {
         GoogleCalendar gc = new GoogleCalendar();
         gc.deleteAllEvents();
-        /*
-        gc.createWeeklyEvent(
-                DayOfWeek.TUESDAY,
-                new Time(3, 0),
-                new Time(12, 20),
-                "MrTuesday",
-                "MrLocation",
-                new URL("http://mrUrl.com")
-        );
-        gc.createWeeklyEvent(
-                DayOfWeek.SUNDAY,
-                new Time(3, 0),
-                new Time(12, 20),
-                "MrSunday",
-                "MrLocation",
-                new URL("http://mrUrl.com")
-        );
-        gc.createWeeklyEvent(
-                DayOfWeek.SATURDAY,
-                new Time(3, 0),
-                new Time(12, 20),
-                "MrMonday",
-                "MrLocation",
-                new URL("http://mrUrl.com")
-        );
-         */
-
     }
-
 }

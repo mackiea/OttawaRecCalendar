@@ -5,7 +5,13 @@ import java.time.LocalDate;
 import java.util.Calendar;
 import java.util.Date;
 
+/**
+ * Basic implementation-agnostic calendar superclass.
+ */
 public abstract class BaseCalendar {
+    public BaseCalendar() {
+    }
+
     String getJavaDayOfWeek(DayOfWeek dayOfWeek) {
         return switch (dayOfWeek) {
             case SUNDAY -> "Sunday";
@@ -68,8 +74,22 @@ public abstract class BaseCalendar {
         return cal.getTime();
     }
 
+    /**
+     * Empties the calendar.
+     * @throws IOException if a problem occurs.
+     */
     abstract void deleteAllEvents() throws IOException;
 
+    /**
+     * Creates a weekly, eternal event.
+     * @param dayOfWeek The weekday the event runs.
+     * @param start The start time.
+     * @param end The end time.
+     * @param title The name.
+     * @param location Where the event is being held.
+     * @param url A link to the website the event is created from, for manual verification adn context.
+     * @throws IOException if a problem occurs.
+     */
     abstract void createWeeklyEvent(DayOfWeek dayOfWeek, Time start, Time end, String title, String location, URL url) throws IOException;
 
     static void log(Object o) {

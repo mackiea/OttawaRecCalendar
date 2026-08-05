@@ -1,3 +1,5 @@
+package mack7400.code;
+
 import com.google.api.client.auth.oauth2.Credential;
 import com.google.api.client.extensions.java6.auth.oauth2.AuthorizationCodeInstalledApp;
 import com.google.api.client.extensions.jetty.auth.oauth2.LocalServerReceiver;
@@ -68,7 +70,7 @@ public class GoogleCalendar extends BaseCalendar {
     Calendar service;
 
     @Override
-    void deleteAllEvents() throws IOException {
+    protected void deleteAllEvents() throws IOException {
         List<Event> items;
         do {
             Events events = service.events().list(calendarId)
@@ -105,7 +107,7 @@ public class GoogleCalendar extends BaseCalendar {
      * @throws IOException if a problem occurs.
      */
     @Override
-    void createWeeklyEvent(DayOfWeek javaDayOfWeek, Time start, Time end, String title, String location, URL url) throws IOException {
+    public void createWeeklyEvent(DayOfWeek javaDayOfWeek, Time start, Time end, String title, String location, URL url) throws IOException {
         log(javaDayOfWeek + "|" + start + "|" + end + "|" + title + "|" + location + "|" + url);
         Event newEvent = new Event()
                 .setSummary(title + ": " + location)

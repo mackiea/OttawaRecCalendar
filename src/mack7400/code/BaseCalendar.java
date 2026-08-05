@@ -1,3 +1,5 @@
+package mack7400.code;
+
 import java.io.IOException;
 import java.net.URL;
 import java.time.DayOfWeek;
@@ -12,7 +14,7 @@ public abstract class BaseCalendar {
     public BaseCalendar() {
     }
 
-    String getJavaDayOfWeek(DayOfWeek dayOfWeek) {
+    public String getJavaDayOfWeek(DayOfWeek dayOfWeek) {
         return switch (dayOfWeek) {
             case SUNDAY -> "Sunday";
             case MONDAY -> "Monday";
@@ -24,11 +26,16 @@ public abstract class BaseCalendar {
         };
     }
 
-    static class Time {
+    public static class Time {
         int hour;
         int minute;
 
-        Time(String time) {
+        public Time(int hour, int minute) {
+            this.hour = hour;
+            this.minute = minute;
+        }
+
+        public Time(String time) {
             int offset = time.contains("pm") ? 12 : 0;
             time = time.replace("pm", "").replace("am", "").replace((char) 8239, ' ').trim();
             time = time.replace(" h", "");
@@ -56,6 +63,15 @@ public abstract class BaseCalendar {
             }
         }
 
+        @Override
+        public boolean equals(Object o) {
+            if(!(o instanceof Time)) {
+                return false;
+            }
+            Time time = (Time)o;
+            return time.hour == hour && time.minute == minute;
+        }
+
     }
 
     Date getPreviousDateByDayOfWeek(DayOfWeek dayOfWeek, Time time) {
@@ -78,7 +94,7 @@ public abstract class BaseCalendar {
      * Empties the calendar.
      * @throws IOException if a problem occurs.
      */
-    abstract void deleteAllEvents() throws IOException;
+    protected abstract void deleteAllEvents() throws IOException;
 
     /**
      * Creates a weekly, eternal event.
@@ -90,7 +106,11 @@ public abstract class BaseCalendar {
      * @param url A link to the website the event is created from, for manual verification adn context.
      * @throws IOException if a problem occurs.
      */
-    abstract void createWeeklyEvent(DayOfWeek dayOfWeek, Time start, Time end, String title, String location, URL url) throws IOException;
+    public abstract void createWeeklyEvent(DayOfWeek dayOfWeek, Time start, Time end, String title, String location, URL url) throws IOException;
+
+    static void log(Throwable t) {
+        t.printStackTrace();
+    }
 
     static void log(Object o) {
         System.out.println(o.toString());

@@ -1,3 +1,8 @@
+package mack7400.code;
+
+import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
+import lombok.NonNull;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
@@ -16,7 +21,7 @@ import java.time.DayOfWeek;
  */
 public class OttawaRecCalendar {
 
-    final String siteUrl = "https://ottawa.ca";
+    static final String siteUrl = "https://ottawa.ca";
 
     /**
      * Attempts to parse a "day" column's info.
@@ -36,7 +41,7 @@ public class OttawaRecCalendar {
         Elements times = record.getElementsByTag("td");
         String timeBlocks = times.get(dayOfWeek.getValue() - DayOfWeek.MONDAY.getValue()).text();
         BaseCalendar.log("Parsing timeblocks: " + timeBlocks);
-        timeBlocks = timeBlocks.toLowerCase().replaceAll("noon", "12 pm");
+        timeBlocks = timeBlocks.toLowerCase().replace("noon", "12 pm");
         String[] blocks = timeBlocks.split(",");
         for (String block : blocks) {
             BaseCalendar.log(block);
@@ -49,6 +54,10 @@ public class OttawaRecCalendar {
             if (!startEnd[0].contains("m")) {
                 startEnd[0] = startEnd[0] + (startEnd[1].contains("am") ? "am" : "pm");
             }
+
+            // Remove anything tailing past the "am"/"pm" text.
+            startEnd[0] = startEnd[0].substring(0, startEnd[0].indexOf('m') + 1);
+            startEnd[1] = startEnd[1].substring(0, startEnd[1].indexOf('m') + 1);
 
             BaseCalendar.Time start = new BaseCalendar.Time(startEnd[0]);
             BaseCalendar.Time end = new BaseCalendar.Time(startEnd[1]);
@@ -67,21 +76,22 @@ public class OttawaRecCalendar {
      * @param calendar The calendar to update.
      * @return True if events were logged; false otherwise.
      */
-    boolean processPool(Element pool, BaseCalendar calendar) {
+    boolean processPool(Element pool, BaseCalendar calendar, Connector connector) {
         boolean worked = false;
         try {
-            Elements addresses = pool.getElementsByTag("a");
-            if (addresses.isEmpty()) {
-                BaseCalendar.log("Found no address elements.");
+            Connector.UrlDoc poolPage = connector.getPoolInfo(pool);
+            if(poolPage == null) {
                 return false;
             }
-            URL url = new URL(siteUrl + addresses.get(0).attr("href"));
-            Document poolPage = Jsoup.connect(url.toString()).get();
             BaseCalendar.log("------------------------------------------------------------------");
-            String location = poolPage.getElementsByAttributeValue("name", "dcterms.title").get(0).attr("content");
+            Elements locations = poolPage.document.getElementsByAttributeValue("name", "dcterms.title");
+            if(locations.isEmpty()) {
+                return false;
+            }
+            String location = locations.get(0).attr("content");
             BaseCalendar.log("-----------------------------" + location + "-------------------------------------");
 
-            Elements scheduleTables = poolPage.getElementsByTag("table");
+            Elements scheduleTables = poolPage.document.getElementsByTag("table");
             for (Element scheduleTable : scheduleTables) {
                 String caption = scheduleTable.getElementsByTag("caption").get(0).text().toLowerCase();
                 // Currently only supports pool events.
@@ -91,7 +101,7 @@ public class OttawaRecCalendar {
                 Elements records = scheduleTable.getElementsByTag("tbody").get(0).getElementsByTag("tr");
                 for (Element record : records) {
                     for (DayOfWeek dayOfWeek : DayOfWeek.values()) {
-                        processDayOfWeek(calendar, dayOfWeek, record, location, url);
+                        processDayOfWeek(calendar, dayOfWeek, record, location, poolPage.url);
                     }
                     worked = true;
                 }
@@ -103,21 +113,58 @@ public class OttawaRecCalendar {
         return worked;
     }
 
-    void go(BaseCalendar calendar) {
+
+
+    public static class Connector {
+        @AllArgsConstructor(access = AccessLevel.PUBLIC)
+        public static class UrlDoc {
+            @NonNull URL url;
+            @NonNull Document document;
+        }
+
+        public Element getPoolList(int page) throws IOException {
+            // String uri = OttawaRecCalendar.siteUrl + "/en/recreation-and-parks/recreation-facilities/place-listing?text=&place_facets%5B0%5D=place_type%3A4285&page=" + page;
+            String uri = "https://ottawa.ca/en/recreation-and-parks/facilities/place-listing?place_facets[0]=place_type%3A4219&place_facets[1]=place_type%3A4285&place_facets[2]=place_type%3A2235821&text=&page=" + page;
+            BaseCalendar.log("Connecting to " + uri);
+            return Jsoup.connect(uri).get().body();
+        }
+
+        public UrlDoc getPoolInfo(Element pool) throws IOException {
+            Elements addresses = pool.getElementsByTag("a");
+            if (addresses.isEmpty()) {
+                BaseCalendar.log("Found no address elements.");
+                return null;
+            }
+            URL url = new URL(OttawaRecCalendar.siteUrl + addresses.get(0).attr("href"));
+            return new UrlDoc(url, Jsoup.connect(url.toString()).get());
+        }
+    }
+
+    static final public String docPoolListPath = "table table-bordered table-condensed cols-2";
+    static final public String docPoolPath = "views-field views-field-title";
+    static final public String docNextPagePath = "pager__item--next";
+
+    public void go(BaseCalendar calendar, Connector connector) {
         try {
             BaseCalendar.log("Ottawa Rec Calendar!!");
             calendar.deleteAllEvents();
             // Scrapes all the venues at the given address.
             for(int page = 0;page<10;page++) {
-                Document poolListPage = Jsoup.connect(siteUrl + "/en/recreation-and-parks/recreation-facilities/place-listing?text=&place_facets%5B0%5D=place_type%3A4285&page=" + page).get();
-                Element table = poolListPage.body().getElementsByClass("table table-bordered table-condensed cols-2").get(0);
-                Elements pools = table.getElementsByClass("views-field views-field-title");
+                Element poolListPage = connector.getPoolList(page);
+                Elements tables = poolListPage.getElementsByClass(docPoolListPath);
+                if(tables.isEmpty()) {
+                    BaseCalendar.log("No events found:");
+                    BaseCalendar.log(poolListPage);
+                    return;
+                }
+                Element table = tables.get(0);
+                Elements pools = table.getElementsByClass(docPoolPath);
                 for (Element pool : pools) {
-                    if(!processPool(pool, calendar)) {
+                    if(!processPool(pool, calendar, connector)) {
                         BaseCalendar.log("Failed");
                     }
                 }
-                Elements nextPage = poolListPage.body().getElementsByClass("pager__item--next");
+                Elements nextPage = poolListPage.getElementsByClass(docNextPagePath);
                 if(nextPage.isEmpty()) {
                     break;
                 }
@@ -131,7 +178,7 @@ public class OttawaRecCalendar {
         try {
             BaseCalendar calendar = new GoogleCalendar();
             OttawaRecCalendar orc = new OttawaRecCalendar();
-            orc.go(calendar);
+            orc.go(calendar, new Connector());
         } catch(GeneralSecurityException | IOException e) {
             BaseCalendar.log(e);
         }

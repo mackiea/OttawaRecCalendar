@@ -1,3 +1,5 @@
+package mack7400.code;
+
 import java.net.URL;
 import java.time.DayOfWeek;
 
@@ -8,12 +10,12 @@ public class DebugCalendar extends BaseCalendar {
     public DebugCalendar() {
     }
     @Override
-    void deleteAllEvents() {
+    protected void deleteAllEvents() {
 
     }
 
     @Override
-    void createWeeklyEvent(DayOfWeek dayOfWeek, Time start, Time end, String title, String location, URL url) {
+    public void createWeeklyEvent(DayOfWeek dayOfWeek, Time start, Time end, String title, String location, URL url) {
 
     }
 }

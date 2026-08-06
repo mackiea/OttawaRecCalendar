@@ -1,5 +1,7 @@
 package mack7400.code;
 
+import lombok.AllArgsConstructor;
+
 import java.io.IOException;
 import java.net.URL;
 import java.time.DayOfWeek;
@@ -26,14 +28,10 @@ public abstract class BaseCalendar {
         };
     }
 
+    @AllArgsConstructor
     public static class Time {
         int hour;
         int minute;
-
-        public Time(int hour, int minute) {
-            this.hour = hour;
-            this.minute = minute;
-        }
 
         public Time(String time) {
             int offset = time.contains("pm") ? 12 : 0;
@@ -75,7 +73,10 @@ public abstract class BaseCalendar {
     }
 
     Date getPreviousDateByDayOfWeek(DayOfWeek dayOfWeek, Time time) {
-        LocalDate now = LocalDate.now(); // Today, now
+        return getPreviousDateByDayOfWeek(dayOfWeek, time, LocalDate.now());
+    }
+
+    public Date getPreviousDateByDayOfWeek(DayOfWeek dayOfWeek, Time time, LocalDate now) {
         int offset = dayOfWeek.getValue() - now.getDayOfWeek().getValue();
         LocalDate then = now.plusDays(offset);
         if (then.getDayOfWeek().equals(DayOfWeek.SUNDAY)) {

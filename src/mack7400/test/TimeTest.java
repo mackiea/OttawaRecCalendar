@@ -11,7 +11,10 @@ import java.util.stream.Stream;
 public class TimeTest {
     static Stream<Arguments> constructorValues () {
         return Stream.of(
-                Arguments.of("3:30 pm", new BaseCalendar.Time(15, 30))
+                Arguments.of("3:30 pm", new BaseCalendar.Time(15, 30)),
+                Arguments.of("3:30", new BaseCalendar.Time(3, 30)),
+                Arguments.of("20 h", new BaseCalendar.Time(20, 0)),
+                Arguments.of("12 am", new BaseCalendar.Time(0, 0))
         );
     }
 

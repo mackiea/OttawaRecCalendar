@@ -5,9 +5,15 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.*;
+import org.mockito.Mockito;
 
 import java.net.URL;
 import java.time.DayOfWeek;
+import java.time.LocalDate;
+import java.time.Month;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.GregorianCalendar;
 import java.util.stream.Stream;
 
 public class BaseCalendarTest {
@@ -41,8 +47,30 @@ public class BaseCalendarTest {
 
     @ParameterizedTest
     @MethodSource("dayOfWeekSource")
-    void getJavaDayOfWeek(DayOfWeek dayofWeek, String expected) {
-        Assertions.assertEquals(expected, new CalendarImplementation().getJavaDayOfWeek(dayofWeek));
+    void getJavaDayOfWeek(DayOfWeek dayOfWeek, String expected) {
+        Assertions.assertEquals(expected, new CalendarImplementation().getJavaDayOfWeek(dayOfWeek));
+    }
+
+    private static Stream<Arguments> getPreviousDateByDayOfWeekSource() {
+        return Stream.of(
+                Arguments.of(
+                        DayOfWeek.SUNDAY,
+                        new BaseCalendar.Time(10, 0),
+                        new GregorianCalendar(2026, GregorianCalendar.AUGUST, 2, 10, 0).getTime()
+                ),
+                Arguments.of(
+                        DayOfWeek.MONDAY,
+                        new BaseCalendar.Time(10, 0),
+                        new GregorianCalendar(2026, GregorianCalendar.AUGUST, 3, 10, 0).getTime()
+                )
+        );
+    }
+
+    @ParameterizedTest
+    @MethodSource("getPreviousDateByDayOfWeekSource")
+    void getPreviousDateByDayOfWeekTest(DayOfWeek dayOfWeek, BaseCalendar.Time time, Date expected) {
+        LocalDate now = LocalDate.of(2026, Month.AUGUST, 5);
+        Assertions.assertEquals(expected, new CalendarImplementation().getPreviousDateByDayOfWeek(dayOfWeek, time, now));
     }
 }
 

@@ -113,8 +113,6 @@ public class OttawaRecCalendar {
         return worked;
     }
 
-
-
     public static class Connector {
         @AllArgsConstructor(access = AccessLevel.PUBLIC)
         public static class UrlDoc {

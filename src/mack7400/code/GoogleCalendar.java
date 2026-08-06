@@ -132,9 +132,4 @@ public class GoogleCalendar extends BaseCalendar {
                         .setApplicationName(APPLICATION_NAME)
                         .build();
     }
-
-    public static void main(String... args) throws IOException, GeneralSecurityException {
-        GoogleCalendar gc = new GoogleCalendar();
-        gc.deleteAllEvents();
-    }
 }
